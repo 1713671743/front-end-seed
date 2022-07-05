@@ -96,20 +96,20 @@ function cellClickTable(row: any) {
 }
 
 //日榜周榜月榜选项 1：日榜 2：周榜 3：月榜
-const dateList = ref<string>("1")
+const dateList = ref<number>(1)
 //搜索账号条件
 const accountName = ref<string>('')
 //TODO
-// const dateChangeTable = ref<number>(1);
-// watch(dateList, (newValue: number, oldValue: any) => {
-//   if (newValue == 1) {
-//     dateChangeTable.value = 1
-//   } else if (newValue == 2) {
-//     dateChangeTable.value = 2
-//   } else {
-//     dateChangeTable.value = 3
-//   }
-// })
+const dateChangeTable = ref<number>(1);
+watch(dateList, (newValue: number) => {
+  if (newValue == 1) {
+    dateChangeTable.value = 1
+  } else if (newValue == 2) {
+    dateChangeTable.value = 2
+  } else {
+    dateChangeTable.value = 3
+  }
+})
 
 const tideData = reactive({
   // areaTemp:[],
@@ -169,8 +169,9 @@ const findAccountSelectPage = async (accountName: string) => {
 //查询所有地区
 const findAllArea = async () => {
   const res = await findAreaApi(null);
-  let area = new areaObject(0, "全部", "", "", "", "", "", 0)
+  // let area = new areaObject(0, "全部", "", "", "", "", "", 0)
   tideData.area = res.data as never
+  // debugger
   // tideData.area.push(area as never)
 }
 
@@ -196,9 +197,6 @@ function changeArea(event: any) {
 //分类下拉选项
 function changeCategory(event: any) {
   params.category = event.value
-  if (event.value == "全部"){
-    params.category = ""
-  }
   findAccountSelectPage(accountName.value)
 }
 
@@ -235,8 +233,7 @@ const getNowMonthFirst = (date: any) => {
 
 //获取本月最后一天
 const getNowMonthLast = (date: any) => {
-  const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0)
-  return endDate
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0)
 }
 
 //获取周榜
@@ -269,18 +266,15 @@ const getNearly7Day = async () => {
   let date = new Date()
   for (let i = 0; i <= 24 * 6; i += 24) {
     //今天加上前6天
-    let dateItem = new Date(date.getTime() - i * 60 * 60 * 1000)  //使用当天时间戳减去以前的时间毫秒（小时*分*秒*毫秒）
+    let dateItem = new Date(date.getTime() - i * 60 * 60 * 1000) //使用当天时间戳减去以前的时间毫秒（小时*分*秒*毫秒）
     let endDateItem = new Date(date.getTime() - i * 60 * 60 * 1000) //使用当天时间戳减去以前的时间毫秒（小时*分*秒*毫秒）
     let y = dateItem.getFullYear() //获取年份
     let m = dateItem.getMonth() + 1 //获取月份js月份从0开始，需要+1
     let d = dateItem.getDate() //获取日期
-    let h = dateItem.getHours() //获取小时
-    let dm = dateItem.getMinutes()//获取分钟
-    let s = dateItem.getSeconds();//获取秒
     m = addDate0(m) //给为单数的月份补零
     d = addDate0(d) //给为单数的日期补零
     let valueItem = y + '年' + m + '月' + d + '日' //组合
-    let dateTime = y + '-' + m + '-' + d + '' + h + ':' + dm + ':' + s  //组合
+    // let dateTime = y + '-' + m + '-' + d + '' + h + ':' + dm + ':' + s  //组合
     let dateList = new dateObject(i, moment(dateItem).format("YYYY-MM-DD"), moment(endDateItem).format("YYYY-MM-DD"), valueItem);
     tideData.dailyList.push(dateList as never)
   }
@@ -349,7 +343,7 @@ defineExpose({receiveParametersMethods})
     <vxe-toolbar>
       <template #buttons>
         <div class="radioLeft">
-          <vxe-radio-group v-model="dateList" :strict="false">
+          <vxe-radio-group v-model="dateList">
             <vxe-radio-button label="1" content="日榜"></vxe-radio-button>
             <vxe-radio-button label="2" content="周榜"></vxe-radio-button>
             <vxe-radio-button label="3" content="月榜"></vxe-radio-button>
@@ -357,7 +351,7 @@ defineExpose({receiveParametersMethods})
         </div>
         <div style="margin-left:25px">
           <!--日榜-->
-          <p v-if="dateList == '1'">
+          <p v-if="dateList === 1">
             <vxe-select v-model="optionDateTime.defaultDailyTime.date" placeholder="选择时间" @change="changeDate($event)"
                         filterable>
               <vxe-option v-for="daily in tideData.dailyList" :key="daily.id" :value="daily"
@@ -365,7 +359,7 @@ defineExpose({receiveParametersMethods})
             </vxe-select>
           </p>
           <!--周榜-->
-          <p v-if="dateList == '2'">
+          <p v-if="dateList === 2">
             <vxe-select v-model="optionDateTime.defaultWeeklyTime.date" placeholder="选择时间" @change="changeDate($event)"
                         filterable>
               <vxe-option v-for="weekly in tideData.weeklyList" :key="weekly.id" :value="weekly"
@@ -373,7 +367,7 @@ defineExpose({receiveParametersMethods})
             </vxe-select>
           </p>
           <!--月榜-->
-          <p v-if="dateList == '3'">
+          <p v-if="dateList === 3">
             <vxe-select v-model="tideData.monthlyList.date" placeholder="选择时间" filterable
                         :filter-method="regionDropDown(1, 2, 3)" @change="changeDate($event)">
               <vxe-option v-for="monthly in tideData.monthlyList" :key="monthly.id" :value="monthly"
@@ -545,5 +539,6 @@ defineExpose({receiveParametersMethods})
 .radioLeft {
   padding-left: 20px;
 }
+
 
 </style>
